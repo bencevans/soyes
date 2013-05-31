@@ -69,4 +69,7 @@ app.get('/zone/:UDN', function(req, res, next) {
   });
 });
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 3000, function() {
+  console.log('Soyes listening on port ' + (process.env.PORT || 3000));
+  console.log('Open http://localhost:' + (process.env.PORT || 3000) + ' in your browser');
+});
