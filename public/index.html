@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" ng-app>
+<head>
+  <meta charset="utf-8">
+  <title>Soyes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <link href="/css/bootstrap.css" rel="stylesheet">
+  <style>
+  body {
+    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+  }
+  </style>
+
+  <script type="text/javascript" src="http://littlesparkvt.com/flatstrap/assets/js/jquery.js"></script>
+  <script type="text/javascript" src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-modal.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+
+  <script type="text/javascript">
+
+  function zoneCtrl($scope, $http, $timeout) {
+    bob = $scope;
+    $scope.devices = {};
+    $scope.topology = [];
+    $scope.zones = [];
+    $scope.currentZone = false;
+
+    $scope.updateZones = function() {
+      $scope.zones = _.map($scope.topology.zones, function(topDevice) {
+        return {
+          id: topDevice.group,
+          devices: _.filter($scope.devices, function(device) {
+            return device.description.UDN.match(/^uuid\:(.+)/)[1] == topDevice.uuid;
+          })
+        }
+      });
+    }
+
+    $scope.playIcon = function() {
+      return 'play';
+      return 'stop';
+      return 'pause';
+    }
+
+    $scope.setCurrentZone = function(udn) {
+      $scope.currentZone = udn;
+    }
+
+    function poll() {
+      $.getJSON('/devices.json', function(dev) {
+        $scope.devices = dev;
+        $.getJSON('/topology.json', function(top) {
+          $scope.topology = top;
+          $scope.updateZones()
+          $timeout(poll, 5000);
+        });
+      });
+
+    };
+    poll();
+
+  }
+
+  </script>
+
+</head>
+
+<body>
+
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="#">Soyes</a>
+        <div class="nav-collapse collapse">
+          <ul class="nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="https://github.com/bencevans/soyes">GitHub</a></li>
+            <li><a href="https://github.com/bencevans/soyes/issues">Issues</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+        <div class="nav-collapse collapse pull-right">
+          <ul class="nav">
+            <li><a href="#"><i class="icon-fast-backward icon-white"></i></a></li>
+            <li><a href="#"><i class="icon-play icon-white"></i></a></li>
+            <li><a href="#"><i class="icon-fast-forward icon-white"></i></a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <noscript>
+      <div class="row">
+        <div class="alert alert-error">
+          <b>JavaScript <strong>must</strong> be enabled</b> to use this controller.
+        </div>
+      </div>
+    </noscript>
+
+    <div class="row">
+      <div class="span4" ng-controller="zoneCtrl">
+        <!-- Zones Column -->
+
+        <div ng-repeat="zone in zones" ng-click="setCurrentZone(zone.id)">
+        <div class="row" style="background-color:rgba(0,0,0,0.1)" >
+          <!-- Zone -->
+          <div class="span3">
+            <!-- Device List -->
+            <div class="row" ng-repeat="device in zone.devices">
+              <div class="span3">
+                <img src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;"> {{device.description.roomName}}
+              </div>
+            </div>
+          </div>
+
+          <div class="span1">
+            <a href="#group" role="button" class="btn btn-primary btn-block" style="position:relative;top:10px;right:10px;" data-toggle="modal">Group</a>
+          </div>
+
+        </div>
+        <div class="row" style="background-color:#eee; margin-bottom:10px;">
+          <div class="span4">
+            <p class="muted" style="text-align:right;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;margin-right:10px;margin:2px 10px;">
+              
+              <i class="icon-{{playIcon}}"></i>
+              <i class="icon-play"></i>
+              <i class="icon-pause"></i>
+              {{currentTrack.title}} - {{currentTrack.artist}}
+            </p>
+          </div>
+        </div>
+      </div>
+
+
+      </div>
+
+      <div class="span4"><!-- Current Device Collumn -->
+
+        <div class="row"><!-- Now Playing -->
+
+          <div class="span2">
+            <img src="http://192.168.2.13:1400/getaa?s=1&u=x-sonos-spotify%3aspotify%253atrack%253a3Oi4ct6eNDXdHEqLaqZtwt%3fsid%3d9%26flags%3d0">
+          </div>
+
+          <div class="span2">
+            <h5 style="margin:3px 0;">Track [10/14]</h5>
+            Human
+            <h5 style="margin:3px 0;">Artist</h5>
+            Daughter
+            <h5 style="margin:3px 0;">Album</h5>
+            Human
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom:20px;"><!-- Next Track -->
+          <div class="span4">
+            <h5 style="margin:3px 0;">Next</h5>
+            Intro - Newton Faulkner
+          </div>
+        </div>
+
+        <div class="row"><!-- Queue -->
+          <div class="span4">
+            <table class="table-striped" style="width:100%">
+              <tr>
+                <td width=50>
+                  <img style="width:50px;" src="/img/play.png">
+                </td>
+                <td>
+                  <table style="width:100%;">
+                    <tr>
+                      <td>
+                        <b>Human</b>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        Daughter
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="http://placehold.it/50x50">
+                </td>
+                <td>
+                  <table>
+                    <tr>
+                      <td>
+                        <b>Intro</b>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        Newton Faulkner
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="span4"><!-- Menu & Options Collumn-->
+        <ul class="nav nav-tabs nav-stacked">
+          <li><a href="#">Music Library</a></li>
+          <li><a href="#">Radio</a></li>
+          <li><a href="#">Spotify</a></li>
+          <li><a href="#">Line-In</a></li>
+          <li><a href="#">Sonos Playlists</a></li>
+          <li><a href="#">More Music</a></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+
+  <div id="group" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="myModalLabel">Modal header</h3>
+    </div>
+    <div class="modal-body">
+      <p>One fine body…</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+      <button class="btn btn-primary">Save changes</button>
+    </div>
+  </div>
+
+
+
+</body>
+</html>

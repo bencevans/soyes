@@ -1,0 +1,27 @@
+{
+  "name": "soyes",
+  "version": "0.0.0",
+  "description": "Sonos web controller",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "keywords": [
+    "sonos",
+    "web",
+    "controller",
+    "api",
+    "http",
+    "upnp",
+    "music"
+  ],
+  "author": "Ben Evans <ben@bensbit.co.uk> (http://bensbit.co.uk)",
+  "license": "MIT",
+  "dependencies": {
+    "express": "~3.2.1",
+    "underscore": "~1.4.4",
+    "request": "~2.21.0",
+    "sonos": "~0.3.0"
+  }
+}
