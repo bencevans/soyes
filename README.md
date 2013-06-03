@@ -30,7 +30,8 @@ Current Tech:
 
 1. Clone Project: `git clone https://github.com/bencevans/soyes.git && cd soyes`
 2. Install dependencies `npm install` (requires node.js and npm)
-3. Start The Server `node server.js`
+3. Set a Sonos Zone Player IP Address in server.js
+4. Start The Server `node server.js`
 
 ## Licence
 
