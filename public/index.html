@@ -9,17 +9,22 @@
 
   <link href="/css/bootstrap.css" rel="stylesheet">
   <style>
-  body {
-    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-  }
+    body {
+      padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+    }
   </style>
-
-  <script type="text/javascript" src="http://littlesparkvt.com/flatstrap/assets/js/jquery.js"></script>
-  <script type="text/javascript" src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-modal.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+  <link href="/css/bootstrap-responsive.css" rel="stylesheet"><!-- Responsive css must come after topbar padding -->
+    
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
 
   <script type="text/javascript">
+  var zoneToggle = false; // Remember toggle state for showing zones in phone mode (!important is required to override flatstrap responsive)
 
   function zoneCtrl($scope, $http, $timeout) {
     bob = $scope;
@@ -62,6 +67,18 @@
     };
     poll();
 
+    $(document).ready(function() {
+      // Bind any controls
+      $('#btn-zones').click(function() {
+        zoneToggle = !zoneToggle;
+        if(zoneToggle) {
+          $('#zones').attr('style','display: block !important'); // requires !important to override responsive hiding in phone mode
+        } else {
+          $('#zones').removeAttr('style');
+        }
+      });
+    });
+
   }
 
   </script>
@@ -79,25 +96,28 @@
           <span class="icon-bar"></span>
         </a>
         <a class="brand" href="#">Soyes</a>
+        <!-- Show Controls in Navbar below destop threshold-->
+        <div class="pull-right">
+          <ul class="nav">
+            <li><a href="#"><i class="icon-fast-backward icon-white"></i></a></li>
+            <li><a href="#"><i class="icon-play icon-white"></i></a></li>
+            <li><a href="#"><i class="icon-fast-forward icon-white"></i></a></li>
+          </ul>
+        </div>
+        <!-- Collapsing links list below desktop threshold -->
         <div class="nav-collapse collapse">
           <ul class="nav">
             <li class="active"><a href="#">Home</a></li>
             <li><a href="https://github.com/bencevans/soyes">GitHub</a></li>
             <li><a href="https://github.com/bencevans/soyes/issues">Issues</a></li>
           </ul>
-        </div><!--/.nav-collapse -->
-        <div class="nav-collapse collapse pull-right">
-          <ul class="nav">
-            <li><a href="#"><i class="icon-fast-backward icon-white"></i></a></li>
-            <li><a href="#"><i class="icon-play icon-white"></i></a></li>
-            <li><a href="#"><i class="icon-fast-forward icon-white"></i></a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
+        </div>
       </div>
     </div>
   </div>
 
   <div class="container">
+
     <noscript>
       <div class="row">
         <div class="alert alert-error">
@@ -105,41 +125,66 @@
         </div>
       </div>
     </noscript>
+    
+    <!-- Phone only Dropdown for Menu & Options -->
+    <div class="row visible-phone" style="margin-bottom:20px;">
+      <div class="btn-group">
+        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+          Music
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <!-- Menu & Options Collumn-->
+          <li><a tabindex="-1" href="#">Music Library</a></li>
+          <li><a tabindex="-1" href="#">Radio</a></li>
+          <li><a tabindex="-1" href="#">Spotify</a></li>
+          <li><a tabindex="-1" href="#">Line-In</a></li>
+          <li><a tabindex="-1" href="#">Sonos Playlists</a></li>
+          <li><a tabindex="-1" href="#">More Music</a></li>
+        </ul>
+      </div>
+      <div class="btn-group">
+        <a id="btn-zones" class="btn dropdown-toggle" href="#">
+          Zones
+          <span class="caret"></span>
+        </a>
+      </div>
+    </div>
 
     <div class="row">
-      <div class="span4" ng-controller="zoneCtrl">
+      <div class="span4 hidden-phone" ng-controller="zoneCtrl" id="zones">
         <!-- Zones Column -->
 
         <div ng-repeat="zone in zones" ng-click="setCurrentZone(zone.id)">
-        <div class="row" style="background-color:rgba(0,0,0,0.1)" >
-          <!-- Zone -->
-          <div class="span3">
-            <!-- Device List -->
-            <div class="row" ng-repeat="device in zone.devices">
-              <div class="span3">
-                <img src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;"> {{device.description.roomName}}
+          <div class="row" style="background-color:rgba(0,0,0,0.1)" >
+            <!-- Zone -->
+            <div class="span3">
+              <!-- Device List -->
+              <div class="row" ng-repeat="device in zone.devices">
+                <div class="span3">
+                  <img src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;"> {{device.description.roomName}}
+                </div>
               </div>
+            </div>
+
+            <div class="span1">
+              <a href="#group" role="button" class="btn btn-primary btn-block" data-toggle="modal">Group</a> <!-- style="position:relative;top:10px;right:10px;" Doesn't respond correctly -->
+            </div>
+
+          </div>
+          <div class="row" style="background-color:#eee; margin-bottom:10px;">
+            <div class="span4">
+              <p class="muted" style="text-align:right;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;margin-right:10px;margin:2px 10px;">
+                
+                <i class="icon-{{playIcon}}"></i>
+                <i class="icon-play"></i>
+                <i class="icon-pause"></i>
+                {{currentTrack.title}} - {{currentTrack.artist}}
+              </p>
             </div>
           </div>
 
-          <div class="span1">
-            <a href="#group" role="button" class="btn btn-primary btn-block" style="position:relative;top:10px;right:10px;" data-toggle="modal">Group</a>
-          </div>
-
         </div>
-        <div class="row" style="background-color:#eee; margin-bottom:10px;">
-          <div class="span4">
-            <p class="muted" style="text-align:right;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;margin-right:10px;margin:2px 10px;">
-              
-              <i class="icon-{{playIcon}}"></i>
-              <i class="icon-play"></i>
-              <i class="icon-pause"></i>
-              {{currentTrack.title}} - {{currentTrack.artist}}
-            </p>
-          </div>
-        </div>
-      </div>
-
 
       </div>
 
@@ -148,7 +193,7 @@
         <div class="row"><!-- Now Playing -->
 
           <div class="span2">
-            <img src="http://192.168.2.13:1400/getaa?s=1&u=x-sonos-spotify%3aspotify%253atrack%253a3Oi4ct6eNDXdHEqLaqZtwt%3fsid%3d9%26flags%3d0">
+            <img src="http://placehold.it/140x140">
           </div>
 
           <div class="span2">
@@ -170,24 +215,15 @@
 
         <div class="row"><!-- Queue -->
           <div class="span4">
-            <table class="table-striped" style="width:100%">
+            <table class="table-striped" style="width:100%;margin-bottom:20px;">
               <tr>
                 <td width=50>
                   <img style="width:50px;" src="/img/play.png">
                 </td>
                 <td>
-                  <table style="width:100%;">
-                    <tr>
-                      <td>
-                        <b>Human</b>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Daughter
-                      </td>
-                    </tr>
-                  </table>
+                  <b>Human</b>
+                  <br/>
+                  Daughter
                 </td>
               </tr>
               <tr>
@@ -195,18 +231,19 @@
                   <img src="http://placehold.it/50x50">
                 </td>
                 <td>
-                  <table>
-                    <tr>
-                      <td>
-                        <b>Intro</b>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Newton Faulkner
-                      </td>
-                    </tr>
-                  </table>
+                  <b>Another Artist</b>
+                  <br/>
+                  Another Track
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="http://placehold.it/50x50">
+                </td>
+                <td>
+                  <b>Another Artist</b>
+                  <br/>
+                  Another Track
                 </td>
               </tr>
             </table>
@@ -215,8 +252,8 @@
         </div>
 
       </div>
-
-      <div class="span4"><!-- Menu & Options Collumn-->
+    
+      <div class="span4 hidden-phone"><!-- Menu & Options Collumn-->
         <ul class="nav nav-tabs nav-stacked">
           <li><a href="#">Music Library</a></li>
           <li><a href="#">Radio</a></li>
@@ -227,7 +264,7 @@
         </ul>
       </div>
     </div>
-
+  
   </div>
 
 
@@ -237,7 +274,7 @@
       <h3 id="myModalLabel">Modal header</h3>
     </div>
     <div class="modal-body">
-      <p>One fine body…</p>
+      <p>Show all Zones here</p>
     </div>
     <div class="modal-footer">
       <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
@@ -245,7 +282,20 @@
     </div>
   </div>
 
-
+  <!-- Flatstrap javascript (unused components commented for now) -->
+  <script src="http://littlesparkvt.com/flatstrap/assets/js/jquery.js"></script>
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-alert.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-transition.js"></script>-->
+  <script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-modal.js"></script>
+  <script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-dropdown.js"></script>
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-scrollspy.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-tab.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-tooltip.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-popover.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-button.js"></script>-->
+  <script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-collapse.js"></script>
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-carousel.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-typeahead.js"></script>-->
 
 </body>
 </html>
