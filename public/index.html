@@ -24,7 +24,6 @@
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
 
   <script type="text/javascript">
-  var zoneToggle = false; // Remember toggle state for showing zones in phone mode (!important is required to override flatstrap responsive)
 
   function zoneCtrl($scope, $http, $timeout) {
     bob = $scope;
@@ -67,18 +66,22 @@
     };
     poll();
 
-    $(document).ready(function() {
-      // Bind any controls
-      $('#btn-zones').click(function() {
-        zoneToggle = !zoneToggle;
-        if(zoneToggle) {
-          $('#zones').attr('style','display: block !important'); // requires !important to override responsive hiding in phone mode
-        } else {
-          $('#zones').removeAttr('style');
-        }
-      });
-    });
+  }
 
+  // Remember toggle state for showing zones in phone mode (!important is required to override flatstrap responsive)
+  var zoneToggle = false; 
+  function toggleZones() {
+    zoneToggle = !zoneToggle;
+    if(zoneToggle) {
+      $('#zones').attr('style','display: block !important');
+    } else {
+      $('#zones').removeAttr('style');
+    }
+  }
+
+  // Party mode - Select all Zones
+  function partyMode() {
+    $('.chkDevice').attr('checked', true);
   }
 
   </script>
@@ -96,7 +99,7 @@
           <span class="icon-bar"></span>
         </a>
         <a class="brand" href="#">Soyes</a>
-        <!-- Show Controls in Navbar below destop threshold-->
+        <!-- Back/Play/Forward Controls -->
         <div class="pull-right">
           <ul class="nav">
             <li><a href="#"><i class="icon-fast-backward icon-white"></i></a></li>
@@ -131,7 +134,7 @@
       <div class="btn-group">
         <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
           Music
-          <span class="caret"></span>
+          <i class="icon-music"></i>
         </a>
         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
           <!-- Menu & Options Collumn-->
@@ -143,8 +146,8 @@
           <li><a tabindex="-1" href="#">More Music</a></li>
         </ul>
       </div>
-      <div class="btn-group">
-        <a id="btn-zones" class="btn dropdown-toggle" href="#">
+      <div class="btn-group"> <!-- toggle for zones visibility -->
+        <a id="btn-zones" class="btn" href="#" onclick="toggleZones()">
           Zones
           <span class="caret"></span>
         </a>
@@ -162,7 +165,8 @@
               <!-- Device List -->
               <div class="row" ng-repeat="device in zone.devices">
                 <div class="span3">
-                  <img src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;"> {{device.description.roomName}}
+                  <img src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
+                  {{device.description.roomName}}
                 </div>
               </div>
             </div>
@@ -193,7 +197,7 @@
         <div class="row"><!-- Now Playing -->
 
           <div class="span2">
-            <img src="http://placehold.it/140x140">
+            <img src="http://placehold.it/140x140" width="140px"> <!-- {{currentTrack.albumArtURL}} for current zone -->
           </div>
 
           <div class="span2">
@@ -271,14 +275,24 @@
   <div id="group" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <h3 id="myModalLabel">Modal header</h3>
+      <h3 id="myModalLabel">Group Rooms</h3>
     </div>
-    <div class="modal-body">
-      <p>Show all Zones here</p>
+    <div class="modal-body" ng-controller="zoneCtrl"> <!-- Use different controller? -->
+      <!-- TODO: Add now playing from selected zone -->
+      Choose rooms to play:<br />
+      {{currentTrack.title}} - {{currentTrack.artist}}
+      <div class="row" ng-repeat="device in devices">
+        <div class="span4">
+          <label class="checkbox">
+            <input type="checkbox" class="chkDevice"> {{device.description.roomName}}
+          </label>
+        </div>
+      </div>
+      <button class="btn pull-left" onclick="partyMode();">Select All - Party Mode</button>
     </div>
     <div class="modal-footer">
-      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-      <button class="btn btn-primary">Save changes</button>
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+      <button class="btn">Done</button> <!-- ng-submt or ng-click ? -->
     </div>
   </div>
 
