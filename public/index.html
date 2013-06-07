@@ -31,6 +31,7 @@
     $scope.topology = [];
     $scope.zones = [];
     $scope.currentZone = false;
+    $scope.selectedZoneForGroup = false;
 
     $scope.updateZones = function() {
       $scope.zones = _.map($scope.topology.zones, function(topDevice) {
@@ -41,6 +42,10 @@
           })
         }
       });
+      // Set the intial zone as the first one it finds if nothing already selected
+      if($scope.currentZone == false){
+        $scope.setCurrentZone($scope.zones[0].id);
+      }
     }
 
     $scope.playIcon = function() {
@@ -49,22 +54,51 @@
       return 'pause';
     }
 
+    var noTrack = {
+      title: 'None',
+      album: 'None',
+      artist: 'None',
+      albumArtURL: 'http://placehold.it/140x140'
+    };
+
     $scope.setCurrentZone = function(udn) {
-      $scope.currentZone = udn;
+      // Should highlight the current zone somehow (udn with a ":" fails as a jquery selector)
+      // $('.zoneDevices').css('font-weight', 'normal');
+      // $(this).children('.zoneDevices').css('font-weight', 'bold');
+      // $scope.currentZone = udn;
+      $scope.currentZone = _.filter($scope.zones, function(zone){return zone.id == udn;});
+      var track = $scope.currentZone[0].devices[0].track;
+      $scope.currentTrack = (track == null ? noTrack : track);
     }
 
+    // This is used for Grouping Zones
+    $scope.setSelectedZoneForGroup = function(udn) {
+      // $scope.selectedZoneForGroup = udn;
+      $scope.selectedZoneForGroup = _.filter($scope.zones, function(zone){return zone.id == udn;});
+      var track = $scope.selectedZoneForGroup[0].devices[0].track;
+      $scope.selectedZoneTrack = (track == null ? noTrack : track);
+    }
+
+    var debugPoll = false;
     function poll() {
       $.getJSON('/devices.json', function(dev) {
         $scope.devices = dev;
         $.getJSON('/topology.json', function(top) {
           $scope.topology = top;
           $scope.updateZones()
-          $timeout(poll, 5000);
+          if(!debugPoll) {
+            $timeout(poll, 5000);
+          }
         });
       });
-
     };
-    poll();
+    // Debug with manual poll from refresh button
+    if(!debugPoll) {
+      $('#btnManualRefresh').hide();
+      poll();
+    }
+
+    $scope.poll = poll();
 
   }
 
@@ -88,7 +122,7 @@
 
 </head>
 
-<body>
+<body ng-controller="zoneCtrl">
 
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
@@ -102,6 +136,7 @@
         <!-- Back/Play/Forward Controls -->
         <div class="pull-right">
           <ul class="nav">
+            <li><a id="btnManualRefresh" href="#" ng-click="poll()"><i class="icon-refresh icon-white"></i></a></li>
             <li><a href="#"><i class="icon-fast-backward icon-white"></i></a></li>
             <li><a href="#"><i class="icon-play icon-white"></i></a></li>
             <li><a href="#"><i class="icon-fast-forward icon-white"></i></a></li>
@@ -155,24 +190,24 @@
     </div>
 
     <div class="row">
-      <div class="span4 hidden-phone" ng-controller="zoneCtrl" id="zones">
+      <div class="span4 hidden-phone" id="zones">
         <!-- Zones Column -->
 
-        <div ng-repeat="zone in zones" ng-click="setCurrentZone(zone.id)">
+        <div ng-repeat="zone in zones">
           <div class="row" style="background-color:rgba(0,0,0,0.1)" >
             <!-- Zone -->
-            <div class="span3">
+            <div class="span3" ng-click="setCurrentZone(zone.id)" style="cursor:pointer">
               <!-- Device List -->
               <div class="row" ng-repeat="device in zone.devices">
-                <div class="span3">
-                  <img src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
+                <div class="span3 zoneDevices">
+                  <img ng-src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
                   {{device.description.roomName}}
                 </div>
               </div>
             </div>
 
             <div class="span1">
-              <a href="#group" role="button" class="btn btn-primary btn-block" data-toggle="modal">Group</a> <!-- style="position:relative;top:10px;right:10px;" Doesn't respond correctly -->
+              <a href="#group" role="button" class="btn btn-primary" data-toggle="modal" ng-click="setSelectedZoneForGroup(zone.id)" style="position:relative;top:10px;right:10px;">Group</a> <!--  Doesn't respond correctly -->
             </div>
 
           </div>
@@ -183,7 +218,7 @@
                 <i class="icon-{{playIcon}}"></i>
                 <i class="icon-play"></i>
                 <i class="icon-pause"></i>
-                {{currentTrack.title}} - {{currentTrack.artist}}
+                {{zone.devices[0].track.title}} - {{zone.devices[0].track.artist}}
               </p>
             </div>
           </div>
@@ -197,16 +232,16 @@
         <div class="row"><!-- Now Playing -->
 
           <div class="span2">
-            <img src="http://placehold.it/140x140" width="140px"> <!-- {{currentTrack.albumArtURL}} for current zone -->
+            <img ng-src="{{currentTrack.albumArtURL}}" width="140px">
           </div>
 
           <div class="span2">
             <h5 style="margin:3px 0;">Track [10/14]</h5>
-            Human
+            {{currentTrack.title}}
             <h5 style="margin:3px 0;">Artist</h5>
-            Daughter
+            {{currentTrack.artist}}
             <h5 style="margin:3px 0;">Album</h5>
-            Human
+            {{currentTrack.album}}
           </div>
         </div>
 
@@ -277,14 +312,13 @@
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
       <h3 id="myModalLabel">Group Rooms</h3>
     </div>
-    <div class="modal-body" ng-controller="zoneCtrl"> <!-- Use different controller? -->
-      <!-- TODO: Add now playing from selected zone -->
+    <div class="modal-body">
       Choose rooms to play:<br />
-      {{currentTrack.title}} - {{currentTrack.artist}}
+      {{selectedZoneTrack.title}} - {{selectedZoneTrack.artist}}
       <div class="row" ng-repeat="device in devices">
         <div class="span4">
           <label class="checkbox">
-            <input type="checkbox" class="chkDevice"> {{device.description.roomName}}
+            <input type="checkbox" class="chkDevice" ng-checked="true"> {{device.description.roomName}} <!-- TODO: checked state - new method to see if device is in zone or not -->
           </label>
         </div>
       </div>
