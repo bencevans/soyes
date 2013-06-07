@@ -46,6 +46,10 @@
       if($scope.currentZone == false){
         $scope.setCurrentZone($scope.zones[0].id);
       }
+      else {
+        // Update the zone info using the currently selected zone id
+        $scope.setCurrentZone($scope.currentZone[0].id);
+      }
     }
 
     $scope.playIcon = function() {
