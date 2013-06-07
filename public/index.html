@@ -9,14 +9,18 @@
 
   <link href="/css/bootstrap.css" rel="stylesheet">
   <style>
-  body {
-    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-  }
+    body {
+      padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+    }
   </style>
-
-  <script type="text/javascript" src="http://littlesparkvt.com/flatstrap/assets/js/jquery.js"></script>
-  <script type="text/javascript" src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-modal.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+  <link href="/css/bootstrap-responsive.css" rel="stylesheet"><!-- Responsive css must come after topbar padding -->
+    
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
 
   <script type="text/javascript">
@@ -27,6 +31,7 @@
     $scope.topology = [];
     $scope.zones = [];
     $scope.currentZone = false;
+    $scope.selectedZoneForGroup = false;
 
     $scope.updateZones = function() {
       $scope.zones = _.map($scope.topology.zones, function(topDevice) {
@@ -37,6 +42,14 @@
           })
         }
       });
+      // Set the intial zone as the first one it finds if nothing already selected
+      if($scope.currentZone == false){
+        $scope.setCurrentZone($scope.zones[0].id);
+      }
+      else {
+        // Update the zone info using the currently selected zone id
+        $scope.setCurrentZone($scope.currentZone[0].id);
+      }
     }
 
     $scope.playIcon = function() {
@@ -45,30 +58,75 @@
       return 'pause';
     }
 
+    var noTrack = {
+      title: 'None',
+      album: 'None',
+      artist: 'None',
+      albumArtURL: 'http://placehold.it/140x140'
+    };
+
     $scope.setCurrentZone = function(udn) {
-      $scope.currentZone = udn;
+      // Should highlight the current zone somehow (udn with a ":" fails as a jquery selector)
+      // $('.zoneDevices').css('font-weight', 'normal');
+      // $(this).children('.zoneDevices').css('font-weight', 'bold');
+      // $scope.currentZone = udn;
+      $scope.currentZone = _.filter($scope.zones, function(zone){return zone.id == udn;});
+      var track = $scope.currentZone[0].devices[0].track;
+      $scope.currentTrack = (track == null ? noTrack : track);
     }
 
+    // This is used for Grouping Zones
+    $scope.setSelectedZoneForGroup = function(udn) {
+      // $scope.selectedZoneForGroup = udn;
+      $scope.selectedZoneForGroup = _.filter($scope.zones, function(zone){return zone.id == udn;});
+      var track = $scope.selectedZoneForGroup[0].devices[0].track;
+      $scope.selectedZoneTrack = (track == null ? noTrack : track);
+    }
+
+    var debugPoll = false;
     function poll() {
       $.getJSON('/devices.json', function(dev) {
         $scope.devices = dev;
         $.getJSON('/topology.json', function(top) {
           $scope.topology = top;
           $scope.updateZones()
-          $timeout(poll, 5000);
+          if(!debugPoll) {
+            $timeout(poll, 5000);
+          }
         });
       });
-
     };
-    poll();
+    // Debug with manual poll from refresh button
+    if(!debugPoll) {
+      $('#btnManualRefresh').hide();
+      poll();
+    }
 
+    $scope.poll = poll();
+
+  }
+
+  // Remember toggle state for showing zones in phone mode (!important is required to override flatstrap responsive)
+  var zoneToggle = false; 
+  function toggleZones() {
+    zoneToggle = !zoneToggle;
+    if(zoneToggle) {
+      $('#zones').attr('style','display: block !important');
+    } else {
+      $('#zones').removeAttr('style');
+    }
+  }
+
+  // Party mode - Select all Zones
+  function partyMode() {
+    $('.chkDevice').attr('checked', true);
   }
 
   </script>
 
 </head>
 
-<body>
+<body ng-controller="zoneCtrl">
 
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
@@ -79,25 +137,29 @@
           <span class="icon-bar"></span>
         </a>
         <a class="brand" href="#">Soyes</a>
+        <!-- Back/Play/Forward Controls -->
+        <div class="pull-right">
+          <ul class="nav">
+            <li><a id="btnManualRefresh" href="#" ng-click="poll()"><i class="icon-refresh icon-white"></i></a></li>
+            <li><a href="#"><i class="icon-fast-backward icon-white"></i></a></li>
+            <li><a href="#"><i class="icon-play icon-white"></i></a></li>
+            <li><a href="#"><i class="icon-fast-forward icon-white"></i></a></li>
+          </ul>
+        </div>
+        <!-- Collapsing links list below desktop threshold -->
         <div class="nav-collapse collapse">
           <ul class="nav">
             <li class="active"><a href="#">Home</a></li>
             <li><a href="https://github.com/bencevans/soyes">GitHub</a></li>
             <li><a href="https://github.com/bencevans/soyes/issues">Issues</a></li>
           </ul>
-        </div><!--/.nav-collapse -->
-        <div class="nav-collapse collapse pull-right">
-          <ul class="nav">
-            <li><a href="#"><i class="icon-fast-backward icon-white"></i></a></li>
-            <li><a href="#"><i class="icon-play icon-white"></i></a></li>
-            <li><a href="#"><i class="icon-fast-forward icon-white"></i></a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
+        </div>
       </div>
     </div>
   </div>
 
   <div class="container">
+
     <noscript>
       <div class="row">
         <div class="alert alert-error">
@@ -105,41 +167,67 @@
         </div>
       </div>
     </noscript>
+    
+    <!-- Phone only Dropdown for Menu & Options -->
+    <div class="row visible-phone" style="margin-bottom:20px;">
+      <div class="btn-group">
+        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+          Music
+          <i class="icon-music"></i>
+        </a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <!-- Menu & Options Collumn-->
+          <li><a tabindex="-1" href="#">Music Library</a></li>
+          <li><a tabindex="-1" href="#">Radio</a></li>
+          <li><a tabindex="-1" href="#">Spotify</a></li>
+          <li><a tabindex="-1" href="#">Line-In</a></li>
+          <li><a tabindex="-1" href="#">Sonos Playlists</a></li>
+          <li><a tabindex="-1" href="#">More Music</a></li>
+        </ul>
+      </div>
+      <div class="btn-group"> <!-- toggle for zones visibility -->
+        <a id="btn-zones" class="btn" href="#" onclick="toggleZones()">
+          Zones
+          <span class="caret"></span>
+        </a>
+      </div>
+    </div>
 
     <div class="row">
-      <div class="span4" ng-controller="zoneCtrl">
+      <div class="span4 hidden-phone" id="zones">
         <!-- Zones Column -->
 
-        <div ng-repeat="zone in zones" ng-click="setCurrentZone(zone.id)">
-        <div class="row" style="background-color:rgba(0,0,0,0.1)" >
-          <!-- Zone -->
-          <div class="span3">
-            <!-- Device List -->
-            <div class="row" ng-repeat="device in zone.devices">
-              <div class="span3">
-                <img src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;"> {{device.description.roomName}}
+        <div ng-repeat="zone in zones">
+          <div class="row" style="background-color:rgba(0,0,0,0.1)" >
+            <!-- Zone -->
+            <div class="span3" ng-click="setCurrentZone(zone.id)" style="cursor:pointer">
+              <!-- Device List -->
+              <div class="row" ng-repeat="device in zone.devices">
+                <div class="span3 zoneDevices">
+                  <img ng-src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
+                  {{device.description.roomName}}
+                </div>
               </div>
+            </div>
+
+            <div class="span1">
+              <a href="#group" role="button" class="btn btn-primary" data-toggle="modal" ng-click="setSelectedZoneForGroup(zone.id)" style="position:relative;top:10px;right:10px;">Group</a> <!--  Doesn't respond correctly -->
+            </div>
+
+          </div>
+          <div class="row" style="background-color:#eee; margin-bottom:10px;">
+            <div class="span4">
+              <p class="muted" style="text-align:right;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;margin-right:10px;margin:2px 10px;">
+                
+                <i class="icon-{{playIcon}}"></i>
+                <i class="icon-play"></i>
+                <i class="icon-pause"></i>
+                {{zone.devices[0].track.title}} - {{zone.devices[0].track.artist}}
+              </p>
             </div>
           </div>
 
-          <div class="span1">
-            <a href="#group" role="button" class="btn btn-primary btn-block" style="position:relative;top:10px;right:10px;" data-toggle="modal">Group</a>
-          </div>
-
         </div>
-        <div class="row" style="background-color:#eee; margin-bottom:10px;">
-          <div class="span4">
-            <p class="muted" style="text-align:right;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;margin-right:10px;margin:2px 10px;">
-              
-              <i class="icon-{{playIcon}}"></i>
-              <i class="icon-play"></i>
-              <i class="icon-pause"></i>
-              {{currentTrack.title}} - {{currentTrack.artist}}
-            </p>
-          </div>
-        </div>
-      </div>
-
 
       </div>
 
@@ -148,16 +236,16 @@
         <div class="row"><!-- Now Playing -->
 
           <div class="span2">
-            <img src="http://192.168.2.13:1400/getaa?s=1&u=x-sonos-spotify%3aspotify%253atrack%253a3Oi4ct6eNDXdHEqLaqZtwt%3fsid%3d9%26flags%3d0">
+            <img ng-src="{{currentTrack.albumArtURL}}" width="140px">
           </div>
 
           <div class="span2">
             <h5 style="margin:3px 0;">Track [10/14]</h5>
-            Human
+            {{currentTrack.title}}
             <h5 style="margin:3px 0;">Artist</h5>
-            Daughter
+            {{currentTrack.artist}}
             <h5 style="margin:3px 0;">Album</h5>
-            Human
+            {{currentTrack.album}}
           </div>
         </div>
 
@@ -170,24 +258,15 @@
 
         <div class="row"><!-- Queue -->
           <div class="span4">
-            <table class="table-striped" style="width:100%">
+            <table class="table-striped" style="width:100%;margin-bottom:20px;">
               <tr>
                 <td width=50>
                   <img style="width:50px;" src="/img/play.png">
                 </td>
                 <td>
-                  <table style="width:100%;">
-                    <tr>
-                      <td>
-                        <b>Human</b>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Daughter
-                      </td>
-                    </tr>
-                  </table>
+                  <b>Human</b>
+                  <br/>
+                  Daughter
                 </td>
               </tr>
               <tr>
@@ -195,18 +274,19 @@
                   <img src="http://placehold.it/50x50">
                 </td>
                 <td>
-                  <table>
-                    <tr>
-                      <td>
-                        <b>Intro</b>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Newton Faulkner
-                      </td>
-                    </tr>
-                  </table>
+                  <b>Another Artist</b>
+                  <br/>
+                  Another Track
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <img src="http://placehold.it/50x50">
+                </td>
+                <td>
+                  <b>Another Artist</b>
+                  <br/>
+                  Another Track
                 </td>
               </tr>
             </table>
@@ -215,8 +295,8 @@
         </div>
 
       </div>
-
-      <div class="span4"><!-- Menu & Options Collumn-->
+    
+      <div class="span4 hidden-phone"><!-- Menu & Options Collumn-->
         <ul class="nav nav-tabs nav-stacked">
           <li><a href="#">Music Library</a></li>
           <li><a href="#">Radio</a></li>
@@ -227,25 +307,47 @@
         </ul>
       </div>
     </div>
-
+  
   </div>
 
 
   <div id="group" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <h3 id="myModalLabel">Modal header</h3>
+      <h3 id="myModalLabel">Group Rooms</h3>
     </div>
     <div class="modal-body">
-      <p>One fine body…</p>
+      Choose rooms to play:<br />
+      {{selectedZoneTrack.title}} - {{selectedZoneTrack.artist}}
+      <div class="row" ng-repeat="device in devices">
+        <div class="span4">
+          <label class="checkbox">
+            <input type="checkbox" class="chkDevice" ng-checked="true"> {{device.description.roomName}} <!-- TODO: checked state - new method to see if device is in zone or not -->
+          </label>
+        </div>
+      </div>
+      <button class="btn pull-left" onclick="partyMode();">Select All - Party Mode</button>
     </div>
     <div class="modal-footer">
-      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-      <button class="btn btn-primary">Save changes</button>
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+      <button class="btn">Done</button> <!-- ng-submt or ng-click ? -->
     </div>
   </div>
 
-
+  <!-- Flatstrap javascript (unused components commented for now) -->
+  <script src="http://littlesparkvt.com/flatstrap/assets/js/jquery.js"></script>
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-alert.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-transition.js"></script>-->
+  <script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-modal.js"></script>
+  <script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-dropdown.js"></script>
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-scrollspy.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-tab.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-tooltip.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-popover.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-button.js"></script>-->
+  <script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-collapse.js"></script>
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-carousel.js"></script>-->
+  <!--<script src="http://littlesparkvt.com/flatstrap/assets/js/bootstrap-typeahead.js"></script>-->
 
 </body>
 </html>
