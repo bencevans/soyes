@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Soyes</title>
+    <style media="screen">
+      html, body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+      }
+
+      .full-page {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #loading {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      #loading p {
+        text-align: center;
+        margin-top: 60px;
+      }
+
+.cssload-container{
+	position:relative;
+}
+
+.cssload-whirlpool,
+.cssload-whirlpool::before,
+.cssload-whirlpool::after {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	border: 1px solid rgb(204,204,204);
+	border-left-color: rgb(0,0,0);
+	border-radius: 1374px;
+		-o-border-radius: 1374px;
+		-ms-border-radius: 1374px;
+		-webkit-border-radius: 1374px;
+		-moz-border-radius: 1374px;
+}
+
+.cssload-whirlpool {
+	margin: -34px 0 0 -34px;
+	height: 69px;
+	width: 69px;
+	animation: cssload-rotate 1150ms linear infinite;
+		-o-animation: cssload-rotate 1150ms linear infinite;
+		-ms-animation: cssload-rotate 1150ms linear infinite;
+		-webkit-animation: cssload-rotate 1150ms linear infinite;
+		-moz-animation: cssload-rotate 1150ms linear infinite;
+}
+
+.cssload-whirlpool::before {
+	content: "";
+	margin: -32px 0 0 -32px;
+	height: 61px;
+	width: 61px;
+	animation: cssload-rotate 1150ms linear infinite;
+		-o-animation: cssload-rotate 1150ms linear infinite;
+		-ms-animation: cssload-rotate 1150ms linear infinite;
+		-webkit-animation: cssload-rotate 1150ms linear infinite;
+		-moz-animation: cssload-rotate 1150ms linear infinite;
+}
+
+.cssload-whirlpool::after {
+	content: "";
+	margin: -40px 0 0 -40px;
+	height: 77px;
+	width: 77px;
+	animation: cssload-rotate 2300ms linear infinite;
+		-o-animation: cssload-rotate 2300ms linear infinite;
+		-ms-animation: cssload-rotate 2300ms linear infinite;
+		-webkit-animation: cssload-rotate 2300ms linear infinite;
+		-moz-animation: cssload-rotate 2300ms linear infinite;
+}
+
+
+
+@keyframes cssload-rotate {
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@-o-keyframes cssload-rotate {
+	100% {
+		-o-transform: rotate(360deg);
+	}
+}
+
+@-ms-keyframes cssload-rotate {
+	100% {
+		-ms-transform: rotate(360deg);
+	}
+}
+
+@-webkit-keyframes cssload-rotate {
+	100% {
+		-webkit-transform: rotate(360deg);
+	}
+}
+
+@-moz-keyframes cssload-rotate {
+	100% {
+		-moz-transform: rotate(360deg);
+	}
+}
+
+    </style>
+    <link rel="stylesheet" href="public/css/bootstrap.css" media="screen" title="no title" charset="utf-8">
+  </head>
+  <body>
+    <div id="loading" class="full-page">
+      <div class="cssload-container">
+      	<div class="cssload-whirlpool"></div>
+      </div>
+      <p>
+        Searching for Sonos network...
+      </p>
+    </div>
+    <div id="container" class="container full-page" style="display:none;">
+
+
+      <div class="row">
+        <div class="span4 hidden-phone" id="zones">
+          <!-- Zones Column -->
+
+          <div ng-repeat="zone in zones">
+            <div class="row" style="background-color:rgba(0,0,0,0.1)" >
+              <!-- Zone -->
+              <div class="span3" ng-click="setCurrentZone(zone.id)" style="cursor:pointer">
+                <!-- Device List -->
+                <div class="row" ng-repeat="device in zone.devices">
+                  <div class="span3 zoneDevices">
+                    <img ng-src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
+                    {{device.description.roomName}}
+                  </div>
+                </div>
+              </div>
+
+              <div class="span1">
+                <a href="#group" role="button" class="btn btn-primary" data-toggle="modal" ng-click="setSelectedZoneForGroup(zone.id)" style="position:relative;top:10px;right:10px;">Group</a> <!--  Doesn't respond correctly -->
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+    </div>
+    <script src="main.js" charset="utf-8"></script>
+  </body>
+</html>
