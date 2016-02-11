@@ -1,8 +1,8 @@
 /**
  * Set your Sonos Zone Player IP Address here
  */
- 
-var sonosIp = '192.168.1.68'
+
+var sonosIp = '192.168.1.10'
 
 /**
  * Dependencies
@@ -38,7 +38,9 @@ app.get('/devices.json', function(req, res) {
 
 app.get('/topology.json', function(req, res, next) {
   var s = new sonos.Sonos(sonosIp);
+  console.log('connecting')
   s.getTopology(function(err, top) {
+    console.log(err, top)
     res.send(top);
   });
 });

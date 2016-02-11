@@ -1,0 +1,3 @@
+[submodule "public/css/flatstrap"]
+	path = public/css/flatstrap
+	url = git@github.com:wilwaldon/flatstrap.git
