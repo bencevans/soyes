@@ -47,4 +47,5 @@ search.once('DeviceAvailable', function (dev) {
 })
 
 
-findNetwork.then(listZones).then(showZones).then(hideLoader).catch(showError);
+findNetwork({ timeout: 10 *1000})
+.then(listZones).then(showZones).then(hideLoader).catch(showError);
