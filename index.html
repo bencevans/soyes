@@ -116,7 +116,9 @@
 }
 
     </style>
-    <link rel="stylesheet" href="public/css/bootstrap.css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="public/css/bootstrap-responsive.css" media="screen" title="no title" charset="utf-8">
+    <!-- <link rel="stylesheet" href="public/css/flatstrap/dist/css/flatstrap.css" media="screen" title="no title" charset="utf-8"> -->
+    <!-- <link rel="stylesheet" href="public/css/flatstrap/dist/css/flatstrap-theme.css" media="screen" title="no title" charset="utf-8"> -->
   </head>
   <body>
     <div id="loading" class="full-page">
@@ -130,20 +132,26 @@
     <div id="container" class="container full-page" style="display:none;">
 
 
+
       <div class="row">
         <div class="span4 hidden-phone" id="zones">
           <!-- Zones Column -->
 
-          <div ng-repeat="zone in zones">
             <div class="row" style="background-color:rgba(0,0,0,0.1)" >
               <!-- Zone -->
               <div class="span3" ng-click="setCurrentZone(zone.id)" style="cursor:pointer">
                 <!-- Device List -->
-                <div class="row" ng-repeat="device in zone.devices">
-                  <div class="span3 zoneDevices">
-                    <img ng-src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
-                    {{device.description.roomName}}
-                  </div>
+                <div class="span3 zoneDevices">
+                  <img ng-src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
+                  {{device.description.roomName}}
+                </div>
+                <div class="span3 zoneDevices">
+                  <img ng-src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
+                  {{device.description.roomName}}
+                </div>
+                <div class="span3 zoneDevices">
+                  <img ng-src="/device/{{device.description.UDN}}/image.png" alt="{{device.description.roomName}}'s Icon" style="width:48px;height:48px;">
+                  {{device.description.roomName}}
                 </div>
               </div>
 
